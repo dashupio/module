@@ -18,7 +18,7 @@ const Base = require('./Base');
 
 // cammel
 const toCammel = (str) => {
-  return str.split('-').join(' ').replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+  return str.split('-').join(' ').split('_').join(' ').replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
     return index === 0 ? word.toLowerCase() : word.toUpperCase();
   }).replace(/\s+/g, '');
 };
@@ -101,8 +101,10 @@ class DashupModule extends Base {
     
     // view endpoints
     endpoint('views', (views) => {
+      console.log(views);
       // return promise
       return Promise.all(views.map(async (view) => {
+        console.log(view);
         // read file
         return { code : await fs.readFile(this.views[view].path, 'utf8'), uuid : this.views[view].uuid };
       }));

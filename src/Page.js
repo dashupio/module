@@ -16,14 +16,21 @@ class DashupPage extends Base {
   }
 
   /**
+   * returns page type
+   */
+  static get icon() {
+    // return page type label
+    return 'fa fa-database';
+  }
+
+  /**
    * returns object of views
    */
   static get views() {
     // return object of views
     return {
-      page    : '/path/to/file.riot.js',
-      config  : '/path/to/file.riot.js',
-      buttons : '/path/to/file.riot.js',
+      view   : 'page/example/view',
+      config : 'page/example/config',
     };
   }
 
@@ -41,29 +48,6 @@ class DashupPage extends Base {
   static get description() {
     // return description string
     return 'Page Descripton';
-  }
-
-  /**
-   * alters page save event
-   *
-   * @param {*} param0 
-   * @param {*} field 
-   */
-  async save({ req, dashup }, page) {
-    // return once done
-    return;
-  }
-
-  /**
-   * alters resulting sanitised page
-   *
-   * @param {*} param0 
-   * @param {*} field 
-   * @param {*} value 
-   */
-  async sanitise({ req, dashup }, page, data) {
-    // return value
-    return data;
   }
 }
 
