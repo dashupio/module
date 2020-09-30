@@ -293,7 +293,7 @@ class DashupModule extends Base {
       const createdTrigger = new TriggerClass(this, opts);
 
       // register trigger
-      register.actions[createdTrigger.type] = createdTrigger;
+      register.triggers[createdTrigger.type] = createdTrigger;
     };
     await this.triggers(triggerRegister);
 
@@ -303,7 +303,7 @@ class DashupModule extends Base {
       const createdAction = new ActionClass(this, opts);
 
       // register action
-      register.triggers[createdAction.type] = createdAction;
+      register.actions[createdAction.type] = createdAction;
     };
     await this.actions(actionRegister);
 
@@ -470,6 +470,7 @@ class DashupModule extends Base {
           // data
           type        : item.type,
           data        : item.data,
+          icon        : item.icon,
           views       : item.views,
           title       : item.title,
           actions     : Object.keys(item.actions || {}),

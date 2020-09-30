@@ -5,6 +5,7 @@ const Field   = require('./Field');
 const Query   = require('./Query');
 const Model   = require('./Model');
 const Module  = require('./Module');
+const Action  = require('./Action');
 const Connect = require('./Connect');
 
 /**
@@ -42,6 +43,14 @@ class ModuleInterface {
   get Connect() {
     // return field interface
     return Connect;
+  }
+
+  /**
+   * get action
+   */
+  get Action() {
+    // return action interface
+    return Action;
   }
 
   /**
