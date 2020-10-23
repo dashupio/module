@@ -1,7 +1,7 @@
 {
   "name": "@dashup/module",
   "description": "nothing yet",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "dependencies": {
     "@babel/core": "^7.12.3",
     "@babel/plugin-transform-runtime": "^7.12.1",
@@ -10,7 +10,7 @@
     "@babel/register": "^7.12.1",
     "@edenjs/glob": "^1.0.0",
     "babelify": "^10.0.0",
-    "browserify": "^16.5.2",
+    "browserify": "^17.0.0",
     "core-js": "^3.6.5",
     "dot-prop": "^6.0.0",
     "fast-deep-equal": "^3.1.3",

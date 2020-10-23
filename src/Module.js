@@ -5,12 +5,10 @@ const io = require('socket.io-client');
 const uuid = require('shortid');
 const path = require('path');
 const glob = require('@edenjs/glob');
-const babel = require('@babel/core');
 const minify = require('minify-stream');
 const Spinnies = require('spinnies');
 const babelify = require('babelify');
 const browserify = require('browserify');
-const babelPresetEnv = require('@babel/preset-env');
 const { compile } = require('@riotjs/compiler');
 
 // require local
@@ -256,11 +254,11 @@ class DashupModule extends Base {
         extensions : ['.js', '.ts', '.riot'],
       }).transform(babelify, {
         presets : [
-          babel.createConfigItem([babelPresetEnv, {
+          ['@babel/preset-env', {
             targets : {
               browsers : '> 0.25%, not dead',
             },
-          }]),
+          }],
         ],
         plugins : [
           ['@babel/plugin-transform-typescript', {
@@ -269,7 +267,7 @@ class DashupModule extends Base {
         ],
         extensions : ['.js', '.ts', '.riot'],
       });
-
+  
       // ws
       const ws = fs.createWriteStream(`${this.cache}/compiled/${newView}`);
 
