@@ -1,12 +1,10 @@
 
 // require interfaces
-const Page    = require('./Page');
-const Field   = require('./Field');
-const Query   = require('./Query');
-const Model   = require('./Model');
-const Module  = require('./Module');
-const Action  = require('./Action');
-const Connect = require('./Connect');
+const Base   = require('./Base');
+const Query  = require('./Query');
+const Model  = require('./Model');
+const Struct = require('./Struct');
+const Module = require('./Module');
 
 /**
  * module interface base class
@@ -16,41 +14,17 @@ class ModuleInterface {
   /**
    * get field
    */
-  get Field() {
+  get Base() {
     // return field interface
-    return Field;
+    return Base;
   }
 
   /**
    * get field
    */
-  get Page() {
+  get Struct() {
     // return field interface
-    return Page;
-  }
-
-  /**
-   * get field
-   */
-  get Module() {
-    // return field interface
-    return Module;
-  }
-
-  /**
-   * get field
-   */
-  get Connect() {
-    // return field interface
-    return Connect;
-  }
-
-  /**
-   * get action
-   */
-  get Action() {
-    // return action interface
-    return Action;
+    return Struct;
   }
 
   /**
@@ -67,6 +41,14 @@ class ModuleInterface {
   get Model() {
     // return field interface
     return Model;
+  }
+
+  /**
+   * get field
+   */
+  get Module() {
+    // return field interface
+    return Module;
   }
 }
 

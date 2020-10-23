@@ -34,6 +34,9 @@ class DashupModule extends Base {
     // run super
     super();
 
+    // global
+    global.dashup = this;
+
     // run build
     this.building = this.build();
   }
@@ -59,78 +62,6 @@ class DashupModule extends Base {
 
     // load views
     this.connection = await this.__connect();
-
-    // add listeners
-    const endpoint = (name, fn) => {
-      // run function
-      this.connection.on(name, async (id, ...args) => {
-        // get data
-        const data = await fn(...args);
-
-        // return data
-        this.connection.emit(id, data);
-      });
-    };
-
-    // add default RPC methods
-    ['field', 'connect'].forEach((type) => {
-      // create default endpoints
-      endpoint(`${type}.save`, async (opts, data) => {
-        console.log('save', opts);
-        // save
-        await this.register[`${type}s`][data.type].save(opts, data);
-
-        // return field
-        return { [type] : data };
-      });
-      endpoint(`${type}.submit`, async (opts, data, value) => {
-        // save
-        await this.register[`${type}s`][data.type].submit(opts, data, value);
-
-        // return field
-        return { [type] : data, value };
-      });
-      endpoint(`${type}.sanitise`, async (opts, data, value) => {
-        // save
-        const sanitised = await this.register[`${type}s`][data.type].sanitise(opts, data, value);
-
-        // return field
-        return { [type] : data, sanitised };
-      });
-    });
-    
-    // view endpoints
-    endpoint('views', (views) => {
-      console.log(views);
-      // return promise
-      return Promise.all(views.map(async (view) => {
-        console.log(view);
-        // read file
-        return { code : await fs.readFile(this.views[view].path, 'utf8'), uuid : this.views[view].uuid };
-      }));
-    });
-
-    // connect endpoints
-    ['connect'].forEach((type) => {
-      // endpoints
-      endpoint(`${type}.message`, async (opts, data, message) => {
-        // get action
-        const actualValue = await this.register[`${type}s`][data.type].message(opts, data, message);
-
-        // return field
-        return { [type] : data, message : actualValue };
-      });
-      endpoint(`${type}.action`, async (action, opts, data, value) => {
-        // get action
-        const actualAction = this.register[`${type}s`][data.type].actions[action];
-
-        // save
-        const actualValue = await actualAction(opts, data, value);
-
-        // return field
-        return { [type] : data, value : actualValue };
-      });
-    });
   }
 
   /**
@@ -138,44 +69,8 @@ class DashupModule extends Base {
    *
    * @param register 
    */
-  fields(register) {
+  register(register) {
     
-  }
-
-  /**
-   * page register
-   *
-   * @param register 
-   */
-  pages(register) {
-
-  }
-
-  /**
-   * connect register
-   *
-   * @param register 
-   */
-  connects(register) {
-
-  }
-
-  /**
-   * action register
-   *
-   * @param register 
-   */
-  actions(register) {
-
-  }
-
-  /**
-   * trigger register
-   *
-   * @param register 
-   */
-  triggers(register) {
-
   }
 
   /**
@@ -261,63 +156,18 @@ class DashupModule extends Base {
     });
 
     // register
-    const register = {
-      pages    : {},
-      fields   : {},
-      actions  : {},
-      connects : {},
-      triggers : {},
-    };
-    
-    // register pages
-    const pageRegister = (PageClass, opts) => {
+    const register = {};
+
+    // create register
+    const registerFn = (type, Class, opts) => {
       // create class
-      const createdPage = new PageClass(this, opts);
+      const createdClass = new Class(opts);
 
-      // register page
-      register.pages[createdPage.type] = createdPage;
+      // complete
+      if (!register[`${type}s`]) register[`${type}s`] = {};
+      register[`${type}s`][createdClass.type] = createdClass;
     };
-    await this.pages(pageRegister);
-
-    // register fields
-    const fieldRegister = (FieldClass, opts) => {
-      // create class
-      const createdField = new FieldClass(this, opts);
-
-      // register field
-      register.fields[createdField.type] = createdField;
-    };
-    await this.fields(fieldRegister);
-
-    // register triggers
-    const triggerRegister = (TriggerClass, opts) => {
-      // create class
-      const createdTrigger = new TriggerClass(this, opts);
-
-      // register trigger
-      register.triggers[createdTrigger.type] = createdTrigger;
-    };
-    await this.triggers(triggerRegister);
-
-    // register actions
-    const actionRegister = (ActionClass, opts) => {
-      // create class
-      const createdAction = new ActionClass(this, opts);
-
-      // register action
-      register.actions[createdAction.type] = createdAction;
-    };
-    await this.actions(actionRegister);
-
-    // register connects
-    const connectRegister = (ConnectClass, opts) => {
-      // create class
-      const createdConnect = new ConnectClass(this, opts);
-
-      // register connect
-      register.connects[createdConnect.type] = createdConnect;
-    };
-    await this.connects(connectRegister);
+    await this.register(registerFn);
 
     // succeed spinner
     this.spinnies.succeed('register', {
@@ -342,7 +192,7 @@ class DashupModule extends Base {
     const compiled = {};
 
     // loop pages/etc
-    ['pages', 'fields', 'actions', 'triggers', 'connects'].forEach((type) => {
+    Object.keys(this.register).forEach((type) => {
       // types
       Object.values(this.register[type]).forEach((thing) => {
         // values again
@@ -355,6 +205,18 @@ class DashupModule extends Base {
 
     // await compile all views
     const files = await glob(`${path.resolve('./views')}/**/*.riot`);
+
+    // await compile all views
+    await Promise.all((await glob(`${path.resolve('./views')}/**/*`)).filter((f) => f.includes('.') && !f.includes('.riot')).map(async (extra) => {
+      // get new path
+      const newPath = path.resolve(`${this.cache}/views${extra.replace(path.resolve('./views'), '')}`);
+
+      // ensure
+      await fs.ensureDir(path.dirname(newPath));
+
+      // write
+      await fs.writeFile(newPath, await fs.readFile(extra, 'utf8'));
+    }));
 
     // compile and move
     await Promise.all(files.map(async (file) => {
@@ -463,21 +325,21 @@ class DashupModule extends Base {
       accum[key] = Object.values(this.register[key]).map((item) => {
         // return object
         return {
-          // enabled functions
-          save     : !!item.save,
-          submit   : !!item.submit,
-          message  : !!item.message,
-          sanitise : !!item.sanitise,
-
-          // data
+          // descriptors
           type        : item.type,
-          data        : item.data,
           icon        : item.icon,
-          views       : item.views,
           title       : item.title,
-          actions     : Object.keys(item.actions || {}),
           categories  : item.categories,
           description : item.description,
+
+          // data
+          data  : item.data,
+          views : item.views,
+
+          // actions
+          hooks   : Object.keys(item.hooks || {}),
+          events  : Object.keys(item.events || {}),
+          actions : Object.keys(item.actions || {}),
         };
       });
 
@@ -485,20 +347,97 @@ class DashupModule extends Base {
       return accum;
     }, {}));
 
-    // create rpc
-    connection.rpc = (name, ...args) => {
-      // RPC module
-      const rpc = uuid();
 
-      // resolve promise
-      return new Promise((resolve) => {
-        // emit
-        connection.once(rpc, resolve);
+    // ////////////////////////////////////////////////////////////////////////////
+    //
+    // CONNECTION CALL METHODS
+    //
+    // ////////////////////////////////////////////////////////////////////////////
+    
+    // loop for call methods
+    ['rpc', 'hook', 'event', 'action'].forEach((key) => {
+      // call connection event
+      connection[key] = (opts, name, ...args) => {
+        // get id
+        const id = uuid();
 
-        // emit rpc
-        connection.emit(name, rpc, ...args);
+        // out
+        console.log(`[out] [${key}] [${name}] ${opts.type}:${opts.struct}`);
+
+        // call
+        return new Promise((resolve) => {
+          // await once
+          connection.once(id, resolve);
+          connection.emit(`dashup.${key}`, {
+            ...opts,
+  
+            id,
+          }, name, ...args);
+        });
+      };
+    });
+
+
+    // ////////////////////////////////////////////////////////////////////////////
+    //
+    // CONNECTION RECEIVE METHODS
+    //
+    // ////////////////////////////////////////////////////////////////////////////
+
+
+    // loop events
+    ['hook', 'event', 'action'].forEach((key) => {
+      // add event
+      connection.on(`dashup.${key}`, async (opts, name, ...args) => {
+        // log
+        console.log(`[in] [${key}] [${name}] ${opts.type}:${opts.struct}`);
+
+        // get class
+        const fnClass = this.register[`${opts.type}s`][opts.struct];
+
+        // get call
+        const fnCall = (fnClass[`${key}s`] || {})[name];
+
+        // check action
+        if (!fnCall) return;
+
+        // save
+        const data = await fnCall(opts, ...args);
+
+        // resolve
+        if (opts.id) this.connection.emit(opts.id, data);
       });
-    };
+    });
+
+    // rpc calls
+    connection.on('dashup.rpc', async (opts, name, ...args) => {
+      // standard rpc
+      if (name === 'views') {
+        // view names
+        const [viewNames] = args;
+
+        // check exists
+        const views = await Promise.all(viewNames.map(async (view) => {
+          // get from register
+          const structViews = ((this.register[`${opts.type}s`] || {})[opts.struct] || {}).views || {};
+
+          // struct views
+          if (structViews[view]) view = structViews[view];
+
+          // check file
+          if (this.views[view]) {
+            // return data
+            return {
+              code : await fs.readFile(this.views[view].path, 'utf8'),
+              uuid : this.views[view].uuid,
+            };
+          }
+        }));
+
+        // emit resulting views
+        connection.emit(opts.id, views);
+      }
+    });
 
     // succeed spinner
     this.spinnies.succeed('connect', {

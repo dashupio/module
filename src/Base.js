@@ -11,12 +11,12 @@ class DashupBase extends Events {
   /**
    * construct dashup base
    */
-  constructor (base, data = {}) {
+  constructor (data = {}) {
     // run super
     super();
 
     // set base
-    this.dashup = base;
+    this.dashup = global.dashup;
 
     // set data
     this.__data = data;
