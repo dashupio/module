@@ -1,7 +1,7 @@
 {
   "name": "@dashup/module",
   "description": "nothing yet",
-  "version": "0.0.6",
+  "version": "1.0.0",
   "dependencies": {
     "@babel/core": "^7.12.3",
     "@babel/plugin-transform-runtime": "^7.12.1",
