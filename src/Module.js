@@ -250,6 +250,7 @@ class DashupModule extends Base {
       // Browserify javascript
       const job = browserify({
         entries    : [file],
+        sourceMap  : false,
         standalone : id,
         extensions : ['.js', '.ts', '.riot'],
       }).transform(babelify, {
@@ -265,6 +266,7 @@ class DashupModule extends Base {
             strictMode : false,
           }],
         ],
+        sourceMap  : false,
         extensions : ['.js', '.ts', '.riot'],
       });
   
@@ -275,7 +277,9 @@ class DashupModule extends Base {
       const bundle = job.bundle();
 
       // bundle
-      bundle.pipe(minify()).pipe(ws);
+      bundle.pipe(minify({
+        sourceMap : false,
+      })).pipe(ws);
 
       // await done
       await new Promise((resolve, reject) => {
