@@ -10,15 +10,12 @@ class Model extends Base {
   /**
    * construct dashup base
    */
-  constructor (base, data = {}) {
+  constructor (base, type) {
     // run super
-    super(base, data);
-
-    // set
-    Object.keys(this.__data).forEach((key) => {
-      // set to update model
-      this.set(key, this.__data[key]);
-    });
+    super(base);
+    
+    // type
+    this.type = type;
 
     // save
     this.save     = this.save.bind(this);
@@ -60,7 +57,7 @@ class Model extends Base {
     if (this.get('_id')) args.unshift(this.get('_id'));
     
     // deafen action
-    return this.dashup.connection.rpc(opts, 'model.update', ...args);
+    return this.dashup.connection.rpc(opts, `${this.type}.update`, ...args);
   }
 
   /**

@@ -37,10 +37,10 @@ class DashupQuery {
 
         // return types
         if (Array.isArray(data)) {
-          return data.map(item => new Model(item));
+          return data.map(item => new Model(item, type));
         }
         if (data && typeof data === 'object') {
-          return new Model(data);
+          return new Model(data, type);
         }
 
         // return data
