@@ -310,8 +310,17 @@ class DashupModule extends Base {
       text : 'Connecting to Dashup...',
     });
 
+    // create url
+    let url = `${this.config.url || 'https://dashup.io'}?module=${this.config.key}`;
+
+    // check if environment
+    if (process.env.DASHUP_NODE) {
+      // add url to node
+      url = `${url}&node=${process.env.DASHUP_NODE}`;
+    }
+
     // connection
-    const connection = io.connect(`${this.config.url || 'https://dashup.io'}?module=${this.config.key}`, this.config.socket || {
+    const connection = io.connect(url, this.config.socket || {
       reconnect : true,
     });
 
