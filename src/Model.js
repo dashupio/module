@@ -59,8 +59,6 @@ class Model extends Base {
     // deafen action
     const updated = await this.dashup.connection.rpc(opts, `${this.type}.update`, ...args);
 
-    console.log('updated', updated);
-
     // loop keys
     Object.keys(updated).forEach((key) => this.set(key, updated[key]));
 
