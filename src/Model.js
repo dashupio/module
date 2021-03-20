@@ -57,7 +57,15 @@ class Model extends Base {
     if (this.get('_id')) args.unshift(this.get('_id'));
     
     // deafen action
-    return this.dashup.connection.rpc(opts, `${this.type}.update`, ...args);
+    const updated = await this.dashup.connection.rpc(opts, `${this.type}.update`, ...args);
+
+    console.log('updated', updated);
+
+    // loop keys
+    Object.keys(updated).forEach((key) => this.set(key, updated[key]));
+
+    // return this
+    return this;
   }
 
   /**
