@@ -412,8 +412,14 @@ class DashupModule extends Base {
         // check action
         if (!fnCall) return;
 
-        // save
-        const data = await fnCall(opts, ...args);
+        // data null by default
+        let data = null;
+
+        // try/catch wrap
+        try {
+          // save
+          data = await fnCall(opts, ...args);
+        } catch (e) {}
 
         // resolve
         if (opts.id) this.connection.emit(opts.id, data);
