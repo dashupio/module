@@ -5,6 +5,7 @@ const babelRegister = require('@babel/register');
 // run babel register
 babelRegister({
   presets : [
+    '@babel/preset-react',
     ['@babel/preset-env', {
       targets : {
         node : 'current',
@@ -18,7 +19,7 @@ babelRegister({
     }],
     'add-module-exports',
   ],
-  extensions : ['.ts', '.js'],
+  extensions : ['.tsx', '.jsx', '.ts', '.js'],
 });
 
 // import base

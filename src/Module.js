@@ -4,12 +4,11 @@ const fs = require('fs-extra');
 const io = require('socket.io-client');
 const uuid = require('shortid');
 const path = require('path');
-const glob = require('@edenjs/glob');
 const minify = require('minify-stream');
+const sassify = require('sassify');
 const Spinnies = require('spinnies');
 const babelify = require('babelify');
 const browserify = require('browserify');
-const { compile } = require('@riotjs/compiler');
 
 // require local
 const Base = require('./Base');
@@ -198,42 +197,6 @@ class DashupModule extends Base {
       });
     });
 
-    // ensure
-    await fs.ensureDir(`${this.cache}/views`)
-
-    // await compile all views
-    const files = await glob(`${path.resolve('./views')}/**/*.riot`);
-
-    // await compile all views
-    await Promise.all((await glob(`${path.resolve('./views')}/**/*`)).filter((f) => f.includes('.') && !f.includes('.riot')).map(async (extra) => {
-      // get new path
-      const newPath = path.resolve(`${this.cache}/views${extra.replace(path.resolve('./views'), '')}`);
-
-      // ensure
-      await fs.ensureDir(path.dirname(newPath));
-
-      // write
-      await fs.writeFile(newPath, await fs.readFile(extra, 'utf8'));
-    }));
-
-    // compile and move
-    await Promise.all(files.map(async (file) => {
-      // code
-      const riotCode = (await compile(await fs.readFile(file, 'utf8'), {
-        file,
-        comments : false,
-      })).code;
-
-      // get new path
-      const newPath = path.resolve(`${this.cache}/views${file.replace(path.resolve('./views'), '')}`);
-
-      // ensure
-      await fs.ensureDir(path.dirname(newPath));
-
-      // write
-      await fs.writeFile(newPath, riotCode);
-    }));
-
     // compiled
     await fs.ensureDir(`${this.cache}/compiled`);
 
@@ -241,34 +204,43 @@ class DashupModule extends Base {
     for (const view of Array.from(views)) {
       // file location
       const id   = toCammel(`v${uuid()}`);
-      const file = path.resolve(`${this.cache}/views/${view}${view.includes('.riot') ? '' : '.riot'}`);
+      const file = path.resolve(`./views/${view}`);
 
       // view
-      let newView = view.replace('.riot', '');
-      newView = newView.split('/').join('-');
+      const newView = view.split('/').join('-');
 
       // Browserify javascript
       const job = browserify({
         entries    : [file],
         sourceMap  : false,
         standalone : id,
-        extensions : ['.js', '.ts', '.riot'],
-      }).transform(babelify, {
+        extensions : ['.tsx', '.jsx', '.ts', '.ts', '.scss'],
+      })
+      .transform(sassify, {
+        sourceMap    : false,
+        base64Encode : false,
+      })
+      .transform(babelify, {
         presets : [
-          ['@babel/preset-env', {
+          ['@babel/env', {
             targets : {
               browsers : '> 0.25%, not dead',
             },
           }],
+          '@babel/react',
         ],
-        plugins : [
-          ['@babel/plugin-transform-typescript', {
-            strictMode : false,
-          }],
-        ],
-        sourceMap  : false,
-        extensions : ['.js', '.ts', '.riot'],
-      });
+        extensions : ['.tsx', '.jsx', '.ts', '.js'],
+      })
+        .external('react')
+        .external('moment')
+        .external('@dashup/ui')
+        .external('react-dom')
+        .external('react-select')
+        .external('react-bootstrap')
+        .external('react-sortablejs')
+        .external('react-select/async')
+        .external('react-perfect-scrollbar')
+        .external('react-awesome-query-builder');
   
       // ws
       const ws = fs.createWriteStream(`${this.cache}/compiled/${newView}`);
