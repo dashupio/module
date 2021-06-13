@@ -200,10 +200,16 @@ class DashupModule extends Base {
     // compiled
     await fs.ensureDir(`${this.cache}/compiled`);
 
+    // extensions
+    const extensions = ['.tsx', '.jsx', '.ts', '.ts', '.scss'];
+
     // compile
     for (const view of Array.from(views)) {
       // check exists
-      if (!await fs.exists(`./views/${view}`)) {
+      if (!extensions.find((ext) => {
+        // return exists promise
+        return fs.existsSync(`./views/${view.split('.')[0]}${ext}`);
+      })) {
         // out
         console.warn(`[views] [${view}] File not found`);
 
@@ -220,16 +226,17 @@ class DashupModule extends Base {
 
       // Browserify javascript
       const job = browserify({
+        extensions,
         entries    : [file],
         sourceMap  : false,
         standalone : id,
-        extensions : ['.tsx', '.jsx', '.ts', '.ts', '.scss'],
       })
       .transform(sassify, {
         sourceMap    : false,
         base64Encode : false,
       })
       .transform(babelify, {
+        extensions,
         presets : [
           ['@babel/env', {
             targets : {
@@ -238,7 +245,6 @@ class DashupModule extends Base {
           }],
           '@babel/react',
         ],
-        extensions : ['.tsx', '.jsx', '.ts', '.js'],
       })
         .external('react')
         .external('moment')
