@@ -202,6 +202,15 @@ class DashupModule extends Base {
 
     // compile
     for (const view of Array.from(views)) {
+      // check exists
+      if (!await fs.exists(`./views/${view}`)) {
+        // out
+        console.warn(`[views] [${view}] File not found`);
+
+        // continue
+        continue;
+      }
+
       // file location
       const id   = toCammel(`v${uuid()}`);
       const file = path.resolve(`./views/${view}`);
