@@ -245,12 +245,6 @@ class DashupModule extends Base {
             }],
             '@babel/preset-typescript',
           ],
-          plugins : [
-            ['@babel/plugin-proposal-class-properties', {
-              loose : true
-            }],
-            '@babel/plugin-proposal-optional-chaining',
-          ]
         })
         .transform(sassify, {
           sourceMap    : false,
