@@ -201,7 +201,7 @@ class DashupModule extends Base {
     await fs.ensureDir(`${this.cache}/compiled`);
 
     // extensions
-    const extensions = ['.tsx', '.jsx', '.ts', '.ts', '.scss'];
+    const extensions = ['.tsx', '.jsx', '.ts', '.js', '.scss'];
 
     // compile
     for (const view of Array.from(views)) {
@@ -224,56 +224,68 @@ class DashupModule extends Base {
       // view
       const newView = view.split('/').join('-');
 
-      // Browserify javascript
-      const job = browserify({
-        extensions,
-        entries    : [file],
-        sourceMap  : false,
-        standalone : id,
-      })
-      .transform(sassify, {
-        sourceMap    : false,
-        base64Encode : false,
-      })
-      .transform(babelify, {
-        extensions,
-        presets : [
-          ['@babel/env', {
-            targets : {
-              browsers : '> 0.25%, not dead',
-            },
-          }],
-          '@babel/react',
-        ],
-      })
-        .external('react')
-        .external('moment')
-        .external('@dashup/ui')
-        .external('react-dom')
-        .external('react-select')
-        .external('react-bootstrap')
-        .external('react-sortablejs')
-        .external('react-select/async')
-        .external('react-perfect-scrollbar')
-        .external('react-awesome-query-builder');
-  
-      // ws
-      const ws = fs.createWriteStream(`${this.cache}/compiled/${newView}`);
+      // try/catch
+      try {
+        // Browserify javascript
+        const job = browserify({
+          extensions,
+          entries    : [file],
+          sourceMap  : false,
+          standalone : id,
+        })
+        .transform(babelify, {
+          extensions,
+          global  : true,
+          presets : [
+            '@babel/preset-react',
+            ['@babel/preset-env', {
+              targets : {
+                browsers : '> 5%, not dead',
+              },
+            }],
+            '@babel/preset-typescript',
+          ],
+          plugins : [
+            ['@babel/plugin-proposal-class-properties', {
+              loose : true
+            }],
+            '@babel/plugin-proposal-optional-chaining',
+          ]
+        })
+        .transform(sassify, {
+          sourceMap    : false,
+          base64Encode : false,
+        })
+          .external('react')
+          .external('moment')
+          .external('react-dom')
+          .external('@dashup/ui')
+          .external('@dashup/core')
+          .external('react-select')
+          .external('react-bootstrap')
+          .external('react-sortablejs')
+          .external('react-select/async')
+          .external('react-perfect-scrollbar')
+          .external('react-awesome-query-builder');
+    
+        // ws
+        const ws = fs.createWriteStream(`${this.cache}/compiled/${newView}`);
 
-      // Create browserify bundle
-      const bundle = job.bundle();
+        // Create browserify bundle
+        const bundle = job.bundle();
 
-      // bundle
-      bundle.pipe(minify({
-        sourceMap : false,
-      })).pipe(ws);
+        // bundle
+        bundle.pipe(minify({
+          sourceMap : false,
+        })).pipe(ws);
 
-      // await done
-      await new Promise((resolve, reject) => {
-        // end
-        bundle.once('end', resolve);
-        bundle.once('error', reject);
-      });
+        // await done
+        await new Promise((resolve, reject) => {
+          // end
+          bundle.once('end', resolve);
+          bundle.once('error', reject);
+        });
+      } catch (e) { console.log(e) }
 
       // compiled view
       compiled[view] = { path : `${this.cache}/compiled/${newView}`, uuid : id, };
