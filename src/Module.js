@@ -1,4 +1,7 @@
 
+// import regenerator
+const regeneratorRuntime = require('regenerator-runtime');
+
 // require base
 const fs = require('fs-extra');
 const io = require('socket.io-client');
@@ -8,6 +11,7 @@ const minify = require('minify-stream');
 const sassify = require('sassify');
 const Spinnies = require('spinnies');
 const babelify = require('babelify');
+const DashupRPC = require('@dashup/rpc');
 const browserify = require('browserify');
 
 // require local
@@ -237,12 +241,12 @@ class DashupModule extends Base {
           extensions,
           global  : true,
           presets : [
-            '@babel/preset-react',
             ['@babel/preset-env', {
               targets : {
                 browsers : '> 5%, not dead',
               },
             }],
+            '@babel/preset-react',
             '@babel/preset-typescript',
           ],
         })
@@ -269,9 +273,7 @@ class DashupModule extends Base {
         const bundle = job.bundle();
 
         // bundle
-        bundle.pipe(minify({
-          sourceMap : false,
-        })).pipe(ws);
+        bundle.pipe(ws);
 
         // await done
         await new Promise((resolve, reject) => {
@@ -279,7 +281,9 @@ class DashupModule extends Base {
           bundle.once('end', resolve);
           bundle.once('error', reject);
         });
-      } catch (e) { console.log(e) }
+      } catch (e) {
+        console.log(e);
+      }
 
       // compiled view
       compiled[view] = { path : `${this.cache}/compiled/${newView}`, uuid : id, };
@@ -357,42 +361,26 @@ class DashupModule extends Base {
     // CONNECTION CALL METHODS
     //
     // ////////////////////////////////////////////////////////////////////////////
+
+    // create rpc class
+    this.duRPC = new DashupRPC(connection);
     
     // loop for call methods
     ['rpc', 'hook', 'event', 'action'].forEach((key) => {
-      // call connection event
+      // create calls
       connection[key] = (opts, name, ...args) => {
-        // get id
-        const id = uuid();
-
-        // out
+        // log
         console.log(`[out] [${key}] [${name}] ${opts.type}:${opts.struct}`);
 
-        // call
-        return new Promise((resolve) => {
-          // await once
-          connection.once(id, resolve);
-          connection.emit(`dashup.${key}`, {
-            ...opts,
-  
-            id,
-          }, name, ...args);
-        });
+        // create rpc callback
+        return this.duRPC.call({}, key, opts, name, args);
       };
     });
 
-
-    // ////////////////////////////////////////////////////////////////////////////
-    //
-    // CONNECTION RECEIVE METHODS
-    //
-    // ////////////////////////////////////////////////////////////////////////////
-
-
     // loop events
     ['hook', 'event', 'action'].forEach((key) => {
-      // add event
-      connection.on(`dashup.${key}`, async (opts, name, ...args) => {
+      // add endpoints
+      this.duRPC.endpoint(key, (opts, name, args) => {
         // log
         console.log(`[in] [${key}] [${name}] ${opts.type}:${opts.struct}`);
 
@@ -403,50 +391,38 @@ class DashupModule extends Base {
         const fnCall = (fnClass[`${key}s`] || {})[name];
 
         // check action
-        if (!fnCall) return;
+        if (!fnCall) throw new Error('method does not exist');
 
-        // data null by default
-        let data = null;
-
-        // try/catch wrap
-        try {
-          // save
-          data = await fnCall(opts, ...args);
-        } catch (e) {}
-
-        // resolve
-        if (opts.id) this.connection.emit(opts.id, data);
+        // return await
+        return fnCall(opts, ...args);
       });
     });
 
-    // rpc calls
-    connection.on('dashup.rpc', async (opts, name, ...args) => {
-      // standard rpc
-      if (name === 'views') {
-        // view names
-        const [viewNames] = args;
+    // add endpoints
+    this.duRPC.endpoint('rpc', (opts, name, args) => {
+      // views
+      const [views] = args;
 
-        // check exists
-        const views = await Promise.all(viewNames.map(async (view) => {
-          // get from register
-          const structViews = ((this.register[`${opts.type}s`] || {})[opts.struct] || {}).views || {};
+      // log
+      console.log(`[in] [views] [${views.join(', ')}] ${opts.type}:${opts.struct}`);
 
-          // struct views
-          if (structViews[view]) view = structViews[view];
+      // check exists
+      return Promise.all(views.map(async (view) => {
+        // get from register
+        const structViews = ((this.register[`${opts.type}s`] || {})[opts.struct] || {}).views || {};
 
-          // check file
-          if (this.views[view]) {
-            // return data
-            return {
-              code : await fs.readFile(this.views[view].path, 'utf8'),
-              uuid : this.views[view].uuid,
-            };
-          }
-        }));
+        // struct views
+        if (structViews[view]) view = structViews[view];
 
-        // emit resulting views
-        connection.emit(opts.id, views);
-      }
+        // check file
+        if (this.views[view]) {
+          // return data
+          return {
+            code : await fs.readFile(this.views[view].path, 'utf8'),
+            uuid : this.views[view].uuid,
+          };
+        }
+      }));
     });
 
     // succeed spinner

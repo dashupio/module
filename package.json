@@ -9,6 +9,7 @@
     "@babel/preset-react": "^7.14.5",
     "@babel/preset-typescript": "^7.14.5",
     "@babel/register": "^7.14.5",
+    "@dashup/rpc": "0.0.3",
     "@edenjs/glob": "^1.0.0",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
