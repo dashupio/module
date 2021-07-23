@@ -327,33 +327,40 @@ class DashupModule extends Base {
       connection.once('dashup.ready', resolve);
     });
 
-    // send register
-    connection.emit('dashup.register', Object.keys(this.register).reduce((accum, key) => {
-      // register types
-      accum[key] = Object.values(this.register[key]).map((item) => {
-        // return object
-        return {
-          // descriptors
-          type        : item.type,
-          icon        : item.icon,
-          title       : item.title,
-          categories  : item.categories,
-          description : item.description,
+    // emit register
+    const emitRegister = () => {
+      // send register
+      connection.emit('dashup.register', Object.keys(this.register).reduce((accum, key) => {
+        // register types
+        accum[key] = Object.values(this.register[key]).map((item) => {
+          // return object
+          return {
+            // descriptors
+            type        : item.type,
+            icon        : item.icon,
+            title       : item.title,
+            categories  : item.categories,
+            description : item.description,
 
-          // data
-          data  : item.data,
-          views : item.views,
+            // data
+            data  : item.data,
+            views : item.views,
 
-          // actions
-          hooks   : Object.keys(item.hooks || {}),
-          events  : Object.keys(item.events || {}),
-          actions : Object.keys(item.actions || {}),
-        };
-      });
+            // actions
+            hooks   : Object.keys(item.hooks || {}),
+            events  : Object.keys(item.events || {}),
+            actions : Object.keys(item.actions || {}),
+          };
+        });
 
-      // return accum
-      return accum;
-    }, {}));
+        // return accum
+        return accum;
+      }, {}));
+    }
+
+    // on connect emit
+    emitRegister();
+    connection.on('connect', emitRegister);
 
 
     // ////////////////////////////////////////////////////////////////////////////
