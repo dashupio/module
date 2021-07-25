@@ -261,9 +261,9 @@ class DashupModule extends Base {
           .external('@dashup/core')
           .external('react-select')
           .external('react-bootstrap')
+          .external('simplebar-react')
           .external('react-sortablejs')
           .external('react-select/async')
-          .external('react-perfect-scrollbar')
           .external('react-awesome-query-builder');
     
         // ws
