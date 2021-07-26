@@ -1,7 +1,7 @@
 {
   "name": "@dashup/module",
   "description": "nothing yet",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "dependencies": {
     "@babel/core": "^7.14.6",
     "@babel/plugin-transform-runtime": "^7.14.5",
@@ -22,6 +22,7 @@
     "shortid": "^2.2.16",
     "socket.io-client": "^4.1.2",
     "spinnies": "^0.5.1",
+    "uglifyify": "^5.0.2",
     "uuid": "^8.3.2"
   },
   "engines": {

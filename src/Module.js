@@ -3,11 +3,11 @@
 const regeneratorRuntime = require('regenerator-runtime');
 
 // require base
+
 const fs = require('fs-extra');
 const io = require('socket.io-client');
 const uuid = require('shortid');
 const path = require('path');
-const minify = require('minify-stream');
 const sassify = require('sassify');
 const Spinnies = require('spinnies');
 const babelify = require('babelify');
@@ -243,17 +243,17 @@ class DashupModule extends Base {
           presets : [
             ['@babel/preset-env', {
               targets : {
-                browsers : '> 5%, not dead',
+                browsers : ['last 3 versions', 'not < 0.25%', 'not dead', 'not ie 11', 'not op_mini all'],
               },
             }],
-            '@babel/preset-react',
             '@babel/preset-typescript',
+            '@babel/preset-react',
           ],
         })
         .transform(sassify, {
-          sourceMap    : false,
-          base64Encode : false,
+          sourceMap : false,
         })
+          .plugin('tinyify')
           .external('react')
           .external('moment')
           .external('react-dom')
