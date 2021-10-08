@@ -405,6 +405,12 @@ class DashupModule extends Base {
       });
     });
 
+    // add pong endpoint
+    this.duRPC.endpoint('ping', () => {
+      // return pong
+      return true;
+    });
+
     // add endpoints
     this.duRPC.endpoint('rpc', (opts, name, args) => {
       // views
