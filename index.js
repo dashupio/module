@@ -19,6 +19,7 @@ babelRegister({
     }],
     '@babel/plugin-transform-runtime',
     'add-module-exports',
+    '@babel/plugin-proposal-class-properties',
   ],
   extensions : ['.tsx', '.jsx', '.ts', '.js'],
 });
