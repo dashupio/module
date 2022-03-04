@@ -249,6 +249,9 @@ class DashupModule extends Base {
             '@babel/preset-typescript',
             '@babel/preset-react',
           ],
+          plugins : [
+            '@babel/plugin-syntax-class-properties',
+          ]
         })
         .transform(sassify, {
           sourceMap : false,
